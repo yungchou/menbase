@@ -8,18 +8,20 @@ const express = require('express'),
 	port = 5000;
 
 // Ref: https://mongoosejs.com/
-const mongoose = require('mongoose');
+const mongoose = require('mongoose'),
+	dbName = 'Idea';
 
 mongoose
-	.connect('mongodb://localhost/sampleDB', {
+	.connect(`mongodb://localhost/${dbName}`, {
+		// Here, specify the DB name as 'Idea'
 		useNewUrlParser: true
 	})
-	.then(() => console.log('MongoDB connected...'))
+	.then(() => console.log(`MongoDB connected to '${dbName}' database...`))
 	.catch((err) => console.log(err));
 
 // Load database
-require('./models/Idea'); // Idea.js
-const Idea = mongoose.model('Idea');
+require(`./models/${dbName}`); // Idea.js
+const Idea = mongoose.model(`${dbName}`);
 
 // VIEW ENGINE
 /*
@@ -39,7 +41,7 @@ app.set('view engine', 'handlebars');
 
 // Other settings configured in middleware
 app.use(function(req, res, next) {
-	//set up somehting here
+	//set up something here
 	next();
 });
 
@@ -57,6 +59,15 @@ app.get('/', (req, res) => {
 });
 app.get('/about', (req, res) => {
 	res.render('ABOUT');
+});
+app.get('/ideas', (req, res) => {
+	Idea.find({})
+		.sort({ date: 'desc' })
+		.then((ideas) => {
+			res.render('ideas/index', {
+				ideas: ideas
+			});
+		});
 });
 app.get('/ideas/add', (req, res) => {
 	res.render('ideas/add');
@@ -86,7 +97,7 @@ app.post('/ideas', (req, res) => {
 			title: req.body.title,
 			details: req.body.details
 		};
-		new Idea(newUser).save().then(idea => {
+		new Idea(newUser).save().then((idea) => {
 			res.redirect('/ideas');
 		});
 	}

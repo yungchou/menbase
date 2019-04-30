@@ -23,10 +23,10 @@ mongoose
 require(`./models/${dbName}`); // Idea.js
 const Idea = mongoose.model(`${dbName}`);
 
-// VIEW ENGINE
+// VIEW ENGINE - HANDLEBARS
 /*
 Add the following three statements to use Handlebars as the view engine.
-Here, the degault html layout is define in views/layouts/main.handlebars
+Here, the default html layout is define in views/layouts/main.handlebars
 and update <body></body> to <body> {{{ body }}} </body>.
 While the default page is views/index.handlebars.
 Both views and view/main folders are to be manually created.
@@ -36,20 +36,12 @@ const exphbs = require('express-handlebars');
 app.engine('handlebars', exphbs({ defaultLayout: 'main' }));
 app.set('view engine', 'handlebars');
 
-// BODY-PARSER for parsing user input
+// BODY-PARSER for parsing html's body section
 // Ref: https://github.com/expressjs/body-parser
-
-// Other settings configured in middleware
-app.use(function(req, res, next) {
-	//set up something here
-	next();
-});
-
-// BODY-PARSER
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-// Routing
+// HOME PAGE
 app.get('/', (req, res) => {
 	const info = 'Dynamic content is set in the backend, app.js.';
 	res.render('index', {
@@ -57,9 +49,11 @@ app.get('/', (req, res) => {
 		dynamicContent: info
 	});
 });
+// ABOUT PAGE
 app.get('/about', (req, res) => {
 	res.render('ABOUT');
 });
+// IDEAS INDEX PAGE
 app.get('/ideas', (req, res) => {
 	Idea.find({})
 		.sort({ date: 'desc' })
@@ -69,13 +63,23 @@ app.get('/ideas', (req, res) => {
 			});
 		});
 });
+// ADDING IDEAS
 app.get('/ideas/add', (req, res) => {
 	res.render('ideas/add');
 });
+// EDITING IDEAS
+app.get('/ideas/edit/:id', (req, res) => {
+	Idea.findOne({ _id: req.params.id }).then((idea) => {
+		res.render('ideas/edit', {
+			idea: idea
+		});
+	});
+});
+// Processing FORM
 app.post('/ideas', (req, res) => {
 	let errors = [];
 
-	// Validating data after triming whitespace
+	// Processing form data after trimming whitespace
 	if (!req.body.title.trim()) {
 		errors.push({ text: 'Please add a title.' });
 	}
@@ -83,16 +87,15 @@ app.post('/ideas', (req, res) => {
 		errors.push({ text: 'Please describe your idea.' });
 	}
 
-	// Checking if any error
 	if (errors.length > 0) {
+		//Re-rendering the form with errors and already entered data
 		res.render('ideas/add', {
-			//Re-rendering the form with errors and entered data
 			errors: errors,
 			title: req.body.title,
 			details: req.body.details
 		});
 	} else {
-		// Passed the data validation
+		// Add the idea to database
 		const newUser = {
 			title: req.body.title,
 			details: req.body.details

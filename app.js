@@ -1,7 +1,4 @@
-/* 
-To use ES6 syntax, create a file .jshinttrc in the app root and set
-{ "esversion": 6 }
-*/
+// To use ES6 syntax, create a file .jshinttrc in the app root and set { "esversion": 6 }
 const express = require('express'),
 	app = express(),
 	bodyParser = require('body-parser'),
@@ -21,7 +18,7 @@ mongoose
 
 // Load database
 require(`./models/${dbName}`); // Idea.js
-const Idea = mongoose.model(`${dbName}`);
+const `$dbName` = mongoose.model(`${dbName}`);
 
 // VIEW ENGINE - HANDLEBARS
 /*
